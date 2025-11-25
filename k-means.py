@@ -7,6 +7,8 @@ from sklearn.cluster import KMeans
 # 1. Cargar dataset
 # ------------------------------
 df = pd.read_csv("datos_limpio.csv")
+print("Dataset cargado correctamente:")
+print(df.head())
 
 # ------------------------------
 # 2. Seleccionar solo la columna precio
@@ -39,7 +41,7 @@ plt.grid()
 plt.show()
 
 # ------------------------------
-# 5. Entrenar K-Means (ejemplo con K=3)
+# 5. Entrenar K-Means (usando K=3 del método del codo)
 # ------------------------------
 K = 3
 kmeans = KMeans(n_clusters=K, random_state=42)
@@ -47,16 +49,41 @@ clusters = kmeans.fit_predict(X_scaled)
 
 # Agregar columna cluster
 df["cluster"] = clusters
-
+print("\nDatos con clusters:")
 print(df.head())
 
 # ------------------------------
-# 6. Visualización simple
+# 6. Centroides (convertidos a valores originales)
 # ------------------------------
-plt.figure(figsize=(8,5))
-plt.scatter(df["precio"], df["cluster"], c=df["cluster"])
-plt.title("Clusters creados usando únicamente precio")
+centroides = scaler.inverse_transform(kmeans.cluster_centers_)
+centroides_df = pd.DataFrame(centroides, columns=["precio"])
+
+print("\nCentroides de cada cluster (en precio real):")
+print(centroides_df)
+
+# ------------------------------
+# 7. Rangos de precios por cluster
+# ------------------------------
+print("\nRangos de precio por cluster:")
+for c in sorted(df["cluster"].unique()):
+    min_p = df[df["cluster"] == c]["precio"].min()
+    max_p = df[df["cluster"] == c]["precio"].max()
+    print(f"Cluster {c}: {min_p} - {max_p}")
+
+# ------------------------------
+# 8. Gráfico final de clusters
+# ------------------------------
+""" plt.figure(figsize=(8,5))
+plt.scatter(df["precio"], df["cluster"], c=df["cluster"], cmap="viridis")
+plt.title("Clusters creados usando únicamente el precio")
 plt.xlabel("Precio")
 plt.ylabel("Cluster asignado")
 plt.grid()
-plt.show()
+plt.show() """
+
+# ------------------------------
+# 9. Interpretación automática 
+# ------------------------------
+print("\nInterpretación automática:")
+for i, row in centroides_df.iterrows():
+    print(f"Cluster {i}: productos alrededor de un precio medio de {row['precio']:.2f}")
